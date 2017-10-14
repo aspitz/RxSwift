@@ -952,6 +952,7 @@ final class ObservableSampleTest_ : ObservableSampleTest, RxTestCase {
     #endif
 
     static var allTests: [(String, (ObservableSampleTest_) -> () -> ())] { return [
+    ("testSample_Sampler_Default", ObservableSampleTest.testSample_Sampler_Default),
     ("testSample_Sampler_SamplerThrows", ObservableSampleTest.testSample_Sampler_SamplerThrows),
     ("testSample_Sampler_Simple1", ObservableSampleTest.testSample_Sampler_Simple1),
     ("testSample_Sampler_Simple2", ObservableSampleTest.testSample_Sampler_Simple2),
