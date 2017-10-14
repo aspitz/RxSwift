@@ -13,16 +13,18 @@ extension ObservableType {
 
      Upon each sampling tick, the latest element (if any) in the source sequence during the last sampling interval is sent to the resulting sequence.
 
-     **In case there were no new elements between sampler ticks, no element is sent to the resulting sequence.**
+     **In case there were no new elements between sampler ticks, if a default value has been set then it is sent
+       to the resulting sequence otherwise no element is sent.**
 
      - seealso: [sample operator on reactivex.io](http://reactivex.io/documentation/operators/sample.html)
 
      - parameter sampler: Sampling tick sequence.
+                 defaultValue: a value to return if there are new new elements between sampler ticks
      - returns: Sampled observable sequence.
      */
-    public func sample<O: ObservableType>(_ sampler: O)
+    public func sample<O: ObservableType>(_ sampler: O, defaultValue: E? = nil)
         -> Observable<E> {
-            return Sample(source: self.asObservable(), sampler: sampler.asObservable())
+            return Sample(source: self.asObservable(), sampler: sampler.asObservable(), defaultValue: defaultValue)
     }
 }
 
@@ -53,6 +55,8 @@ final fileprivate class SamplerSink<O: ObserverType, SampleType>
         case .next:
             if let element = _parent._element {
                 _parent._element = nil
+                _parent.forwardOn(.next(element))
+            } else if let element = _parent._parent._defaultValue {
                 _parent.forwardOn(.next(element))
             }
 
@@ -128,10 +132,12 @@ final fileprivate class SampleSequenceSink<O: ObserverType, SampleType>
 final fileprivate class Sample<Element, SampleType> : Producer<Element> {
     fileprivate let _source: Observable<Element>
     fileprivate let _sampler: Observable<SampleType>
+    fileprivate let _defaultValue: Element?
 
-    init(source: Observable<Element>, sampler: Observable<SampleType>) {
+    init(source: Observable<Element>, sampler: Observable<SampleType>, defaultValue: Element? = nil) {
         _source = source
         _sampler = sampler
+        _defaultValue = defaultValue
     }
     
     override func run<O: ObserverType>(_ observer: O, cancel: Cancelable) -> (sink: Disposable, subscription: Disposable) where O.E == Element {
